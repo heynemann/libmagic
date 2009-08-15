@@ -17,3 +17,27 @@
 
 from libmagic.models import *
 from libmagic.game_modes import *
+
+default_phases = [
+                    Phase("beggining",
+                            [
+                                Step("untap"),
+                                Step("upkeep"),
+                                Step("draw")
+                            ]),
+                    Phase("main", [Step("main")]),
+                    Phase("combat",
+                            [
+                                Step("beggining"),
+                                Step("declare_attackers"),
+                                Step("declare_blockers"),
+                                Step("damage"),
+                                Step("end"),
+                            ]),
+                    Phase("main", [Step("main")]),
+                    Phase("ending",
+                            [
+                                Step("end"),
+                                Step("cleanup")
+                            ])
+                 ]

@@ -19,7 +19,7 @@ from copy import deepcopy
 
 from formencode.api import Invalid
 
-from libmagic import Game, Player, Deck, FreeForAll, GameMode
+from libmagic import Game, Player, Deck, Card, Land, FreeForAll, GameMode
 from tests.unit.utils import *
 import tests.unit.data as data
 
@@ -131,7 +131,7 @@ def test_initialize_created_positions_get_empty_graveyards():
     assert not new_game.positions[0].graveyard
     assert not new_game.positions[1].graveyard
 
-def test_initialize_created_positions_get_empty_tables():
+def test_initialize_created_positions_get_empty_battlefields():
     new_game = Game()
     bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
     john = Player(name="John", deck=deepcopy(data.black_deck))
@@ -140,8 +140,8 @@ def test_initialize_created_positions_get_empty_tables():
 
     new_game.initialize()
 
-    assert not new_game.positions[0].table
-    assert not new_game.positions[1].table
+    assert not new_game.positions[0].battlefield
+    assert not new_game.positions[1].battlefield
 
 def test_initialize_draws_players_first_hand():
     new_game = Game()
@@ -191,13 +191,36 @@ def test_initialize_created_positions_get_zero_mana():
     assert new_game.positions[0].mana == 0
     assert new_game.positions[1].mana == 0
 
-#def test_game_decides_player_to_start():
-#    new_game = Game()
-#    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
-#    john = Player(name="John", deck=deepcopy(data.black_deck))
-#    new_game.add_player(bernardo)
-#    new_game.add_player(john)
+def test_game_decides_player_to_start():
+    new_game = Game()
+    cards_a = [Card("Some card", 1)] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Card("Some card", 4)] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
 
-#    new_game.initialize()
+    new_game.initialize()
 
-#    assert 
+    assert new_game.current_position == 1
+
+def test_game_is_at_turn_zero_before_initialized():
+    new_game = Game()
+    assert new_game.turn == 0
+
+def test_game_is_at_turn_one_after_initialized():
+    new_game = Game()
+    cards_a = [Card("Some card", 1)] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Card("Some card", 4)] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert new_game.turn == 1

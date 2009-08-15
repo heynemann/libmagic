@@ -21,6 +21,15 @@ import random
 from formencode.validators import NotEmpty, ConfirmType, Int, Set
 from libmagic.game_modes import GameMode, FreeForAll
 
+class Phase(object):
+    def __init__(self, name, steps):
+        self.name = name
+        self.steps = steps
+
+class Step(object):
+    def __init__(self, name):
+        self.name = name
+
 class Game(object):
     class Position(object):
         def __init__(self, game, player):
@@ -30,8 +39,9 @@ class Game(object):
             self.library.shuffle()
             self.graveyard = []
             self.hand = self.library.draw(7)
-            self.table = []
+            self.battlefield = []
             self.mana = 0
+            self.current_position = None
 
         @property
         def hit_points(self):
@@ -50,6 +60,7 @@ class Game(object):
         ct.to_python(game_mode)
 
         self.game_mode = game_mode
+        self.turn = 0
 
     def add_player(self, player):
         self.players.append(player)
@@ -63,6 +74,7 @@ class Game(object):
             self.positions.append(Game.Position(game=self, player=player))
 
         self.game_mode.initialize(self)
+        self.turn = 1
 
 class Player(object):
     def __init__(self, name, deck):

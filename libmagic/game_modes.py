@@ -36,3 +36,22 @@ class FreeForAll(GameMode):
 
         for position in game.positions:
             self.set_hit_points_for(position.player.name, 20)
+
+        self.game.current_position = self.decide_first_player()
+
+    def decide_first_player(self):
+        index = -1
+
+        while True:
+            greatest_cost_card_player_index = 0
+            for player_index, position in enumerate(self.game.positions):
+                if position.library.cards[index].cost > greatest_cost_card_player_index:
+                    greatest_cost_card_player_index = player_index
+            if greatest_cost_card_player_index > 0:
+                return greatest_cost_card_player_index
+
+            index -= 1
+            for player_index, position in enumerate(self.game.positions):
+                if abs(index) > len(position.library.cards):
+                    return 0
+
