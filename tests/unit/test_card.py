@@ -18,7 +18,7 @@
 from formencode.api import Invalid
 
 from tests.unit.utils import *
-from libmagic import Card
+from libmagic import Card, Land
 
 def test_create_card():
     card = Card("some card", 0)
@@ -51,4 +51,10 @@ def test_create_card_raises_with_null_name():
 def test_create_card_raises_with_empty_name():
     assert_raises(Invalid, Card.__call__, name="", cost=10, exc_pattern=r"The card name must be a string and is required.")
 
+def test_create_land_starts_card_with_zero_cost():
+    land = Land("some land")
+    assert land.cost == 0
 
+def test_create_land_keeps_name():
+    land = Land("some land")
+    assert land.name == "some land"
