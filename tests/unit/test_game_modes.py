@@ -15,5 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from libmagic.models import *
-from libmagic.game_modes import *
+from libmagic import GameMode, Game
+
+def test_create_game_mode():
+    game_mode = GameMode()
+    assert game_mode
+
+def test_create_game_mode_returns_GameMode():
+    game_mode = GameMode()
+    assert isinstance(game_mode, GameMode)
+
+def test_initialize_game_mode_keeps_track_of_game():
+    game = Game()
+    game_mode = GameMode()
+    game_mode.initialize(game)
+    assert game_mode.game is game
+

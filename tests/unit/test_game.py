@@ -17,9 +17,11 @@
 
 from copy import deepcopy
 
+from formencode.api import Invalid
+
+from libmagic import Game, Player, Deck, FreeForAll, GameMode
 from tests.unit.utils import *
 import tests.unit.data as data
-from libmagic import Game, Player, Deck
 
 def test_can_create_game():
     new_game = Game()
@@ -28,6 +30,32 @@ def test_can_create_game():
 def test_created_game_is_Game():
     new_game = Game()
     assert isinstance(new_game, Game)
+
+def test_create_game_assigns_free_for_all_as_default_game_mode():
+    new_game = Game()
+    assert isinstance(new_game.game_mode, FreeForAll)
+
+def test_create_game_assigns_free_for_all_when_null_game_mode():
+    new_game = Game(game_mode=None)
+    assert isinstance(new_game.game_mode, FreeForAll)
+
+def test_create_game_raises_when_string_game_mode():
+    assert_raises(Invalid, Game.__call__, game_mode="wrong", exc_pattern=r"The game mode must be a GameMode subclass and is required.")
+
+def test_create_game_raises_when_int_game_mode():
+    assert_raises(Invalid, Game.__call__, game_mode=10, exc_pattern=r"The game mode must be a GameMode subclass and is required.")
+
+def test_create_game_assigns_20_hit_points_for_each_player_on_free_for_all():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+    john = Player(name="John", deck=deepcopy(data.black_deck))
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert new_game.positions[0].hit_points == 20
+    assert new_game.positions[1].hit_points == 20
 
 def test_created_game_has_not_started():
     new_game = Game()
@@ -151,3 +179,25 @@ def test_initialize_shuffles_decks_to_libraries():
     assert new_game.positions[0].library.cards[0] is not bernardo.deck.cards[0]
     assert new_game.positions[1].library.cards[0] is not john.deck.cards[0]
 
+def test_initialize_created_positions_get_zero_mana():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+    john = Player(name="John", deck=data.black_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert new_game.positions[0].mana == 0
+    assert new_game.positions[1].mana == 0
+
+#def test_game_decides_player_to_start():
+#    new_game = Game()
+#    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+#    john = Player(name="John", deck=deepcopy(data.black_deck))
+#    new_game.add_player(bernardo)
+#    new_game.add_player(john)
+
+#    new_game.initialize()
+
+#    assert 

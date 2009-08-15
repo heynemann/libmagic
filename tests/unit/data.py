@@ -24,3 +24,6 @@ swamp_pack = [swamp] * 20
 
 green_deck = Deck(name="Green Deck", cards=forest_pack)
 black_deck = Deck(name="Black Deck", cards=swamp_pack)
+
+green_land_deck = Deck(name="Green Land Deck", cards=forest_pack)
+black_land_deck = Deck(name="Black Land Deck", cards=swamp_pack)

@@ -15,5 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from libmagic.models import *
-from libmagic.game_modes import *
+class GameMode(object):
+    def initialize(self, game):
+        self.game = game
+        self.hit_points = {}
+
+    def get_hit_points_for(self, player_name):
+        return self.hit_points[player_name]
+
+    def set_hit_points_for(self, player_name, hit_points):
+        self.game.game_mode.hit_points[player_name] = hit_points
+
+class FreeForAll(GameMode):
+    def __init__(self):
+        super(FreeForAll, self).__init__()
+        self.hit_points = {}
+
+    def initialize(self, game):
+        super(FreeForAll, self).initialize(game)
+
+        for position in game.positions:
+            self.set_hit_points_for(position.player.name, 20)

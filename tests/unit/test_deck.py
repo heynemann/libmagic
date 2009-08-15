@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import copy
+
 from formencode.api import Invalid
 
 from tests.unit.utils import *
@@ -36,9 +37,20 @@ def test_create_deck_raises_on_null_name():
 def test_create_deck_raises_on_empty_name():
     assert_raises(Invalid, Deck.__call__, name='', cards=[], exc_pattern=r'The deck name must be a string and is required.')
 
+def test_create_deck_raises_on_null_cards():
+    assert_raises(Invalid, Deck.__call__, name="some_deck", cards=None, exc_pattern=r'The cards property must be a list and is required.')
+
+def test_create_deck_raises_on_string_cards():
+    assert_raises(Invalid, Deck.__call__, name="some_deck", cards="some card", exc_pattern=r'The cards property must be a list and is required.')
+
 def test_create_deck_keeps_name():
     new_deck = Deck(name="Bernardo", cards=[])
     assert new_deck.name == "Bernardo"
+
+def test_create_deck_keeps_cards():
+    some_cards = ["some cards"]
+    new_deck = Deck(name="Bernardo", cards=some_cards)
+    assert new_deck.cards is some_cards
 
 def test_deck_shuffle():
     new_deck = copy.deepcopy(green_deck)
