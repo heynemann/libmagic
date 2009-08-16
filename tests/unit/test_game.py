@@ -107,6 +107,18 @@ def test_initialize_creates_positions_according_to_the_players():
     assert new_game.positions[0].player is bernardo
     assert new_game.positions[1].player is john
 
+def test_initialize_creates_positions_with_right_indexes():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+    john = Player(name="John", deck=deepcopy(data.black_deck))
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert new_game.positions[0].index == 0
+    assert new_game.positions[1].index == 1
+
 def test_initialize_created_positions_get_deep_copies_of_decks():
     new_game = Game()
     bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
@@ -224,3 +236,4 @@ def test_game_is_at_turn_one_after_initialized():
     new_game.initialize()
 
     assert new_game.turn == 1
+

@@ -32,7 +32,8 @@ class Step(object):
 
 class Game(object):
     class Position(object):
-        def __init__(self, game, player):
+        def __init__(self, index, game, player):
+            self.index = index
             self.game = game
             self.player = player
             self.library = copy.deepcopy(player.deck)
@@ -70,8 +71,11 @@ class Game(object):
             raise RuntimeError("You can't start a game with less than 2 players.")
 
         self.positions = []
-        for player in self.players:
-            self.positions.append(Game.Position(game=self, player=player))
+        for player_index, player in enumerate(self.players):
+            position = Game.Position(index=player_index, game=self, player=player)
+            player.position = position
+            player.game = self
+            self.positions.append(position)
 
         self.game_mode.initialize(self)
         self.turn = 1
@@ -88,6 +92,23 @@ class Player(object):
 
         self.name = name
         self.deck = deck
+        self.position = None
+        self.game = None
+
+    def play(self, card):
+        if not self.game or not self.position:
+            raise GameNotInitializedError("You must call game.initialize() before trying to play a card.")
+
+        if self.game.current_position != self.position.index:
+            raise InvalidOperationError("It's not %s's turn to play." % self.name)
+
+        if card not in self.position.hand:
+            raise InvalidOperationError("The card must be in the player's hand in order to be played.")
+
+        #call card.validate passing game and position
+
+        self.position.hand.remove(card)
+        self.position.battlefield.append(card)
 
 class Deck(object):
     def __init__(self, name, cards):
@@ -123,3 +144,8 @@ class Land(Card):
     def __init__(self, name):
         super(Land, self).__init__(name, 0)
 
+class GameNotInitializedError(RuntimeError):
+    pass
+
+class InvalidOperationError(RuntimeError):
+    pass

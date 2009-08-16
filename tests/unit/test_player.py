@@ -21,7 +21,7 @@ from formencode.api import Invalid
 
 from tests.unit.utils import *
 import tests.unit.data as data
-from libmagic import Player, Deck
+from libmagic import Game, Player, Deck, Card, Land, GameNotInitializedError, InvalidOperationError
 
 def test_can_create_player():
     new_player = Player(name="Bernardo", deck=deepcopy(data.green_deck))
@@ -51,4 +51,81 @@ def test_create_player_keeps_deck():
     some_deck = deepcopy(data.green_deck)
     new_player = Player(name="Bernardo", deck=some_deck)
     assert new_player.deck is some_deck
+
+def test_player_starts_with_null_position():
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+    assert bernardo.position is None
+
+def test_player_starts_with_null_game():
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+    assert bernardo.game is None
+
+def test_player_in_a_game_has_game_assigned():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+    john = Player(name="John", deck=data.black_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert bernardo.game is new_game
+    assert john.game is new_game
+
+def test_player_in_a_game_has_position_assigned():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_deck))
+    john = Player(name="John", deck=data.black_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert bernardo.position is new_game.positions[0]
+    assert john.position is new_game.positions[1]
+
+def test_player_can_play_land():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = bernardo.position.hand[0]
+    bernardo.play(land_to_play)
+
+    assert len(bernardo.position.hand) == 6
+    assert len(bernardo.position.battlefield) == 1
+    assert bernardo.position.battlefield[0] == land_to_play
+
+def test_playing_a_land_before_initialize_raises():
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    land_to_play = bernardo.deck.cards[0]
+    assert_raises(GameNotInitializedError, bernardo.play, card=land_to_play, exc_pattern=r'You must call game.initialize\(\) before trying to play a card.')
+
+def test_playing_a_land_when_not_player_turn_raises():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = john.position.hand[0]
+    assert_raises(InvalidOperationError, john.play, card=land_to_play, exc_pattern=r"It's not John's turn to play.")
+
+def test_playing_a_land_when_not_in_players_hand_raises():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = Land("Some Land")
+    assert_raises(InvalidOperationError, bernardo.play, card=land_to_play, exc_pattern=r"The card must be in the player's hand in order to be played.")
 
