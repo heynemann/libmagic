@@ -37,19 +37,19 @@ def test_create_card_keeps_cost():
     assert card.cost == 10
 
 def test_create_card_raises_with_null_cost():
-    assert_raises(Invalid, Card.__call__, name="some_card", cost=None, exc_pattern=r"The card must have an integer cost \(even if it's zero\).")
+    assert_raises(Invalid, Card, name="some_card", cost=None, exc_pattern=r"The card must have an integer cost \(even if it's zero\).")
 
 def test_create_card_raises_with_string_cost():
-    assert_raises(Invalid, Card.__call__, name="some_card", cost="a", exc_pattern=r"The card must have an integer cost \(even if it's zero\).")
+    assert_raises(Invalid, Card, name="some_card", cost="a", exc_pattern=r"The card must have an integer cost \(even if it's zero\).")
 
 def test_create_card_raises_with_empty_cost():
-    assert_raises(Invalid, Card.__call__, name="some_card", cost="", exc_pattern=r"The card must have an integer cost \(even if it's zero\).")
+    assert_raises(Invalid, Card, name="some_card", cost="", exc_pattern=r"The card must have an integer cost \(even if it's zero\).")
 
 def test_create_card_raises_with_null_name():
-    assert_raises(Invalid, Card.__call__, name=None, cost=10, exc_pattern=r"The card name must be a string and is required.")
+    assert_raises(Invalid, Card, name=None, cost=10, exc_pattern=r"The card name must be a string and is required.")
 
 def test_create_card_raises_with_empty_name():
-    assert_raises(Invalid, Card.__call__, name="", cost=10, exc_pattern=r"The card name must be a string and is required.")
+    assert_raises(Invalid, Card, name="", cost=10, exc_pattern=r"The card name must be a string and is required.")
 
 def test_create_land_starts_card_with_zero_cost():
     land = Land("some land")

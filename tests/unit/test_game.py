@@ -19,7 +19,7 @@ from copy import deepcopy
 
 from formencode.api import Invalid
 
-from libmagic import Game, Player, Deck, Card, Land, FreeForAll, GameMode
+from libmagic import Game, Player, Deck, Card, Land, FreeForAll, GameMode, InvalidOperationError
 from tests.unit.utils import *
 import tests.unit.data as data
 
@@ -211,8 +211,9 @@ def test_game_decides_player_to_start():
     cards_b = [Card("Some card", 4)] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
-    new_game.add_player(bernardo)
-    new_game.add_player(john)
+
+    new_game.add_player(bernardo, supress_validation=True)
+    new_game.add_player(john, supress_validation=True)
 
     new_game.initialize()
 
@@ -224,10 +225,10 @@ def test_game_is_at_turn_zero_before_initialized():
 
 def test_game_is_at_turn_one_after_initialized():
     new_game = Game()
-    cards_a = [Card("Some card", 1)] * 20
+    cards_a = [Land("Some card")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Card("Some card", 4)] * 20
+    cards_b = [Land("Some card")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -236,4 +237,15 @@ def test_game_is_at_turn_one_after_initialized():
     new_game.initialize()
 
     assert new_game.turn == 1
+
+def test_game_raises_when_adding_player_with_invalid_deck():
+    new_game = Game()
+    cards_a = [Card("Some card", 1)] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Card("Some card", 4)] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+
+    assert_raises(InvalidOperationError, new_game.add_player, player=bernardo, exc_pattern=r"There can be only 4 cards of type Card and name Some card in the deck and more than that was found.")
 

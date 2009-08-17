@@ -26,6 +26,22 @@ class GameMode(object):
     def set_hit_points_for(self, player_name, hit_points):
         self.game.game_mode.hit_points[player_name] = hit_points
 
+    def validate_deck(self, deck):
+        card_count = {}
+
+        for card in deck.cards:
+            if card.__class__.__name__ == "Land":
+                continue
+
+            card_key = card.__class__.__name__ + "_" + card.name
+            if card_key not in card_count:
+                card_count[card_key] = 0
+            card_count[card_key] += 1
+            if card_count[card_key] > 4:
+                return (False, "There can be only 4 cards of type %s and name %s in the deck and more than that was found." % (card.__class__.__name__, card.name))
+
+        return (True, None)
+
 class FreeForAll(GameMode):
     def __init__(self):
         super(FreeForAll, self).__init__()

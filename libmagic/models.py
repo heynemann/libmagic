@@ -19,6 +19,7 @@ import copy
 import random
 
 from formencode.validators import NotEmpty, ConfirmType, Int, Set
+
 from libmagic.game_modes import GameMode, FreeForAll
 
 class Phase(object):
@@ -63,7 +64,10 @@ class Game(object):
         self.game_mode = game_mode
         self.turn = 0
 
-    def add_player(self, player):
+    def add_player(self, player, supress_validation=False):
+        is_valid, message = self.game_mode.validate_deck(player.deck)
+        if not is_valid and not supress_validation:
+            raise InvalidOperationError(message)
         self.players.append(player)
 
     def initialize(self):

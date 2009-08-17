@@ -15,7 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from libmagic import GameMode, Game
+from tests.unit.utils import *
+from libmagic import GameMode, FreeForAll, Game, Player, Deck, Card, Land
 
 def test_create_game_mode():
     game_mode = GameMode()
@@ -30,4 +31,22 @@ def test_initialize_game_mode_keeps_track_of_game():
     game_mode = GameMode()
     game_mode.initialize(game)
     assert game_mode.game is game
+
+def test_game_mode_validates_decks_for_repeated_cards():
+    game_mode = GameMode()
+    cards_a = [Card("Some card", 1)] * 5
+    deck_a = Deck("deck a", cards_a)
+
+    is_valid, message = game_mode.validate_deck(deck_a)
+    assert not is_valid
+    assert message == "There can be only 4 cards of type Card and name Some card in the deck and more than that was found."
+
+def test_game_mode_validate_ignores_repeated_lands():
+    game_mode = GameMode()
+    cards_a = [Land("Some land")] * 20
+    deck_a = Deck("deck a", cards_a)
+
+    is_valid, message = game_mode.validate_deck(deck_a)
+    assert is_valid
+    assert not message
 
