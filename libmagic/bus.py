@@ -15,8 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from libmagic.models import *
-from libmagic.game_modes import *
-from libmagic.phases import *
-from libmagic.bus import *
+class Bus(object):
+
+    def __init__(self):
+        self.subscribers = {}
+
+    def subscribe(self, message, func):
+        if message not in self.subscribers:
+            self.subscribers[message] = []
+
+        self.subscribers[message].append(func)
+
+    def publish(self, message, *args, **kw):
+        if message not in self.subscribers:
+            return
+
+        for func in self.subscribers[message]:
+            func(*args, **kw)
 

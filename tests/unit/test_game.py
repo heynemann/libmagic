@@ -249,3 +249,11 @@ def test_game_raises_when_adding_player_with_invalid_deck():
 
     assert_raises(InvalidOperationError, new_game.add_player, player=bernardo, exc_pattern=r"There can be only 4 cards of type Card and name Some card in the deck and more than that was found.")
 
+def test_created_game_has_bus():
+    new_game = Game()
+    assert new_game.bus
+
+def test_created_game_has_empty_bus():
+    new_game = Game()
+    assert not new_game.bus.subscribers
+

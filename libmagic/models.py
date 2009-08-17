@@ -21,15 +21,8 @@ import random
 from formencode.validators import NotEmpty, ConfirmType, Int, Set
 
 from libmagic.game_modes import GameMode, FreeForAll
-
-class Phase(object):
-    def __init__(self, name, steps):
-        self.name = name
-        self.steps = steps
-
-class Step(object):
-    def __init__(self, name):
-        self.name = name
+from libmagic.phases import *
+from libmagic.bus import *
 
 class Game(object):
     class Position(object):
@@ -49,7 +42,7 @@ class Game(object):
         def hit_points(self):
             return self.game.game_mode.get_hit_points_for(self.player.name)
 
-    def __init__(self, game_mode=None):
+    def __init__(self, game_mode=None, phases=default_phases):
         if not game_mode:
             game_mode = FreeForAll()
 
@@ -63,6 +56,8 @@ class Game(object):
 
         self.game_mode = game_mode
         self.turn = 0
+        self.phases = phases
+        self.bus = Bus()
 
     def add_player(self, player, supress_validation=False):
         is_valid, message = self.game_mode.validate_deck(player.deck)
