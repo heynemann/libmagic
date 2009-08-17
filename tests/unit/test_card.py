@@ -58,3 +58,13 @@ def test_create_land_starts_card_with_zero_cost():
 def test_create_land_keeps_name():
     land = Land("some land")
     assert land.name == "some land"
+
+def test_card_on_play_works():
+    card = Card("some card", 0)
+    card.on_play(None, None)
+    assert True, "It shouldn't do anything"
+
+def test_card_validate_play_works():
+    card = Card("some card", 0)
+    card.validate_play(None, None)
+    assert True, "It shouldn't do anything"

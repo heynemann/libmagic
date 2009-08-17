@@ -105,10 +105,14 @@ class Player(object):
         if card not in self.position.hand:
             raise InvalidOperationError("The card must be in the player's hand in order to be played.")
 
-        #call card.validate passing game and position
+        is_valid, message = card.validate_play(self.game, self.position)
+        if not is_valid:
+            raise InvalidOperationError(message)
 
         self.position.hand.remove(card)
         self.position.battlefield.append(card)
+
+        card.on_play(self.game, self.position)
 
 class Deck(object):
     def __init__(self, name, cards):
@@ -140,9 +144,31 @@ class Card(object):
         ct = Int(messages={'empty':cost_is_required, 'noneType':cost_is_required, 'integer':cost_is_required})
         self.cost = ct.to_python(ne.to_python(cost))
 
+    def validate_play(self, game, position):
+        pass
+
+    def on_play(self, game, position):
+        pass
+
 class Land(Card):
     def __init__(self, name):
         super(Land, self).__init__(name, 0)
+
+    def validate_play(self, game, position):
+        super(Land, self).on_play(game, position)
+
+        if not hasattr(position, 'turns_with_land'):
+            return (True, None)
+
+        return (game.turn not in position.turns_with_land, "The player can only play one land per turn.")
+
+    def on_play(self, game, position):
+        super(Land, self).on_play(game, position)
+
+        if not hasattr(position, 'turns_with_land'):
+            position.turns_with_land = []
+
+        position.turns_with_land.append(game.turn)
 
 class GameNotInitializedError(RuntimeError):
     pass

@@ -129,3 +129,18 @@ def test_playing_a_land_when_not_in_players_hand_raises():
     land_to_play = Land("Some Land")
     assert_raises(InvalidOperationError, bernardo.play, card=land_to_play, exc_pattern=r"The card must be in the player's hand in order to be played.")
 
+def test_playing_two_lands_in_the_same_turn_fails():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = bernardo.position.hand[0]
+    bernardo.play(land_to_play)
+
+    land_to_play = bernardo.position.hand[0]
+    assert_raises(InvalidOperationError, bernardo.play, card=land_to_play, exc_pattern=r"The player can only play one land per turn.")
+
