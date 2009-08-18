@@ -21,29 +21,30 @@ class Phase(object):
         self.steps = steps
 
 class Step(object):
-    def __init__(self, name):
+    def __init__(self, name, automatic=False):
         self.name = name
+        self.automatic = automatic
 
 default_phases = [
                     Phase("beggining",
                             [
-                                Step("untap"),
-                                Step("upkeep"),
-                                Step("draw")
+                                Step("untap", automatic=True),
+                                Step("upkeep", automatic=True),
+                                Step("draw", automatic=True)
                             ]),
                     Phase("main", [Step("main")]),
                     Phase("combat",
                             [
-                                Step("beggining"),
+                                Step("beggining", automatic=True),
                                 Step("declare_attackers"),
                                 Step("declare_blockers"),
                                 Step("damage"),
-                                Step("end"),
+                                Step("end", automatic=True),
                             ]),
                     Phase("main", [Step("main")]),
                     Phase("ending",
                             [
-                                Step("end"),
-                                Step("cleanup")
+                                Step("end", automatic=True),
+                                Step("cleanup", automatic=True)
                             ])
                  ]

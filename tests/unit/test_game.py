@@ -257,3 +257,158 @@ def test_created_game_has_empty_bus():
     new_game = Game()
     assert not new_game.bus.subscribers
 
+def test_created_game_has_empty_phase():
+    new_game = Game()
+    assert not new_game.current_phase
+
+def test_created_game_has_empty_step():
+    new_game = Game()
+    assert not new_game.current_step
+
+messages = []
+def on_phase_started(game, phase):
+    messages.append('%s_phase_started' % phase.name)
+
+def on_step_started(game, phase, step):
+    messages.append('%s_step_started' % step.name)
+
+def test_initialized_game_passes_through_begginning_phase():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('phase_started', on_phase_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert 'beggining_phase_started' in messages
+
+def test_initialized_game_passes_through_begginning_phase_untap_step():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert 'untap_step_started' in messages
+
+def test_initialized_game_passes_through_begginning_phase_upkeep_step():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert 'upkeep_step_started' in messages
+
+def test_initialized_game_passes_through_begginning_phase_draw_step():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert 'draw_step_started' in messages
+
+def test_initialized_game_passes_through_main_phase():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('phase_started', on_phase_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert 'main_phase_started' in messages
+
+def test_initialized_game_passes_through_main_phase_main_step():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert 'main_step_started' in messages
+
+def test_initialized_game_stops_at_main_phase():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('phase_started', on_phase_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert 'combat_phase_started' not in messages
+

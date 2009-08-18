@@ -59,6 +59,9 @@ class Game(object):
         self.phases = phases
         self.bus = Bus()
 
+        self.current_phase = None
+        self.current_step = None
+
     def add_player(self, player, supress_validation=False):
         is_valid, message = self.game_mode.validate_deck(player.deck)
         if not is_valid and not supress_validation:
@@ -78,6 +81,18 @@ class Game(object):
 
         self.game_mode.initialize(self)
         self.turn = 1
+
+        self.advance_auto_phases()
+
+    def advance_auto_phases(self):
+        for phase in self.phases:
+            self.current_phase = phase
+            self.bus.publish("phase_started", game=self, phase=phase)
+            for step in phase.steps:
+                self.current_step = step
+                self.bus.publish("step_started", game=self, phase=phase, step=step)
+                if not step.automatic:
+                    return
 
 class Player(object):
     def __init__(self, name, deck):
