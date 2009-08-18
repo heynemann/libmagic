@@ -512,3 +512,35 @@ def test_passing_to_next_step_enough_times_passes_back_to_first_player():
     new_game.move_to_next_step() #main - main (other player)
 
     assert new_game.positions[new_game.current_position].player is bernardo
+
+def test_passing_to_next_step_enough_times_passes_back_to_first_player_and_updates_turn():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    new_game.move_to_next_step() #combat - declare_attackers
+    new_game.move_to_next_step() #combat - declare_blockers
+    new_game.move_to_next_step() #combat - damage
+    new_game.move_to_next_step() #main - main
+    new_game.move_to_next_step() #main - main (other player)
+
+    new_game.move_to_next_step() #combat - declare_attackers
+    new_game.move_to_next_step() #combat - declare_blockers
+    new_game.move_to_next_step() #combat - damage
+    new_game.move_to_next_step() #main - main
+    new_game.move_to_next_step() #main - main (other player)
+
+    assert new_game.turn == 2

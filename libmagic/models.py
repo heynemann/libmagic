@@ -97,6 +97,7 @@ class Game(object):
     def __move_to_next_position(self):
         if self.current_position >= len(self.positions) - 1:
             self.current_position = 0
+            self.turn += 1
         else:
             self.current_position += 1
 
