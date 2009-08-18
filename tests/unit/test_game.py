@@ -412,3 +412,103 @@ def test_initialized_game_stops_at_main_phase():
 
     assert 'combat_phase_started' not in messages
 
+def test_can_pass_to_next_phase():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('phase_started', on_phase_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    new_game.move_to_next_step()
+
+    assert 'combat_phase_started' in messages
+
+def test_passing_to_next_step_passes_automatic_steps():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+    new_game.move_to_next_step()
+
+    assert 'declare_attackers_step_started' in messages
+
+def test_passing_to_next_step_enough_times_passes_to_main_of_another_player():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    new_game.move_to_next_step() #combat - declare_attackers
+    new_game.move_to_next_step() #combat - declare_blockers
+    new_game.move_to_next_step() #combat - damage
+    new_game.move_to_next_step() #main - main
+    new_game.move_to_next_step() #main - main (other player)
+
+    assert new_game.positions[new_game.current_position].player is john
+
+def test_passing_to_next_step_enough_times_passes_back_to_first_player():
+    global messages
+    messages = []
+    new_game = Game()
+
+    new_game.bus.subscribe('step_started', on_step_started)
+
+    cards_a = [Land("Some card")] * 20
+    deck_a = Deck("deck a", cards_a)
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    cards_b = [Land("Some card")] * 20
+    deck_b = Deck("deck a", cards_b)
+    john = Player(name="John", deck=deck_b)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    new_game.move_to_next_step() #combat - declare_attackers
+    new_game.move_to_next_step() #combat - declare_blockers
+    new_game.move_to_next_step() #combat - damage
+    new_game.move_to_next_step() #main - main
+    new_game.move_to_next_step() #main - main (other player)
+
+    new_game.move_to_next_step() #combat - declare_attackers
+    new_game.move_to_next_step() #combat - declare_blockers
+    new_game.move_to_next_step() #combat - damage
+    new_game.move_to_next_step() #main - main
+    new_game.move_to_next_step() #main - main (other player)
+
+    assert new_game.positions[new_game.current_position].player is bernardo

@@ -94,6 +94,37 @@ class Game(object):
                 if not step.automatic:
                     return
 
+    def __move_to_next_position(self):
+        if self.current_position >= len(self.positions) - 1:
+            self.current_position = 0
+        else:
+            self.current_position += 1
+
+        self.bus.publish("position_changed", 
+                          game=self, 
+                          position_index=self.current_position, 
+                          position=self.positions[self.current_position])
+
+    def __move_to_next_phase(self):
+        if self.phases.index(self.current_phase) >= len(self.phases) - 1:
+            self.__move_to_next_position()
+            self.current_phase = self.phases[0]
+        else:
+            self.current_phase = self.phases[self.phases.index(self.current_phase)+1]
+
+        self.bus.publish("phase_started", game=self, phase=self.current_phase)
+
+    def move_to_next_step(self):
+        if self.current_phase.steps.index(self.current_step) >= len(self.current_phase.steps) - 1:
+            self.__move_to_next_phase()
+            self.current_step = self.current_phase.steps[0]
+        else:
+            self.current_step = self.current_phase.steps[self.current_phase.steps.index(self.current_step) + 1]
+    
+        self.bus.publish("step_started", game=self, phase=self.current_phase, step=self.current_step)
+        if self.current_step.automatic:
+            self.move_to_next_step()
+
 class Player(object):
     def __init__(self, name, deck):
         player_is_required = 'The player name must be a string and is required.'
