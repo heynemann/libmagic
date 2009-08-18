@@ -175,38 +175,3 @@ def test_player_can_play_two_lands_in_different_turns():
     assert len(bernardo.position.battlefield) == 2
     assert bernardo.position.battlefield[1] == land_to_play
 
-def test_tapping_lands_not_in_game_raises():
-    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
-    land_to_play = bernardo.deck.cards[0]
-    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can only generate mana for terrains in his battlefield.")
-
-def test_tapping_lands_from_hand_raises():
-    new_game = Game()
-    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
-    john = Player(name="John", deck=data.black_land_deck)
-    new_game.add_player(bernardo)
-    new_game.add_player(john)
-
-    new_game.initialize()
-
-    land_to_play = bernardo.position.hand[0]
-
-    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can only generate mana for terrains in his battlefield.")
-
-def test_player_can_tap_lands_to_get_mana():
-    new_game = Game()
-    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
-    john = Player(name="John", deck=data.black_land_deck)
-    new_game.add_player(bernardo)
-    new_game.add_player(john)
-
-    new_game.initialize()
-
-    land_to_play = bernardo.position.hand[0]
-    bernardo.play(land_to_play)
-
-    land_to_play.generate_mana() #tap to generate mana
-
-    assert bernardo.position.mana == 1
-    assert land_to_play.is_tapped
-

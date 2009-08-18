@@ -15,10 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
+
 from formencode.api import Invalid
 
+from libmagic import Game, Player, Deck, Card, Land, FreeForAll, GameMode, InvalidOperationError
 from tests.unit.utils import *
-from libmagic import Card, Land
+import tests.unit.data as data
 
 def test_create_card():
     card = Card("some card", 0)
@@ -64,7 +67,64 @@ def test_card_on_play_works():
     card.on_play(None, None)
     assert True, "It shouldn't do anything"
 
+def test_card_on_upkeep_works():
+    card = Card("some card", 0)
+    card.on_upkeep(None, None)
+    assert True, "It shouldn't do anything"
+
 def test_card_validate_play_works():
     card = Card("some card", 0)
     card.validate_play(None, None)
     assert True, "It shouldn't do anything"
+
+def test_tapping_lands_not_in_game_raises():
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    land_to_play = bernardo.deck.cards[0]
+    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can only generate mana for terrains in his battlefield.")
+
+def test_tapping_lands_from_hand_raises():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = bernardo.position.hand[0]
+
+    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can only generate mana for terrains in his battlefield.")
+
+def test_player_can_tap_lands_to_get_mana():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = bernardo.position.hand[0]
+    bernardo.play(land_to_play)
+
+    land_to_play.generate_mana() #tap to generate mana
+
+    assert bernardo.position.mana == 1
+    assert land_to_play.is_tapped
+
+def test_generating_mana_out_of_a_tapped_land_raises():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = bernardo.position.hand[0]
+    bernardo.play(land_to_play)
+
+    land_to_play.generate_mana() #tap to generate mana
+
+    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can't generate mana out of a tapped land.")
+

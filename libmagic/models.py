@@ -261,6 +261,8 @@ class Land(Card):
     def generate_mana(self):
         if not self.game or not self in self.position.battlefield:
             raise InvalidOperationError(r"The player can only generate mana for terrains in his battlefield.")
+        if self.is_tapped:
+            raise InvalidOperationError(r"The player can't generate mana out of a tapped land.")
 
         self.position.mana += 1
         self.is_tapped = True
