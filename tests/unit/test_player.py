@@ -144,3 +144,34 @@ def test_playing_two_lands_in_the_same_turn_fails():
     land_to_play = bernardo.position.hand[0]
     assert_raises(InvalidOperationError, bernardo.play, card=land_to_play, exc_pattern=r"The player can only play one land per turn.")
 
+def test_player_can_play_two_lands_in_different_turns():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = bernardo.position.hand[0]
+    bernardo.play(land_to_play)
+
+    new_game.move_to_next_step() #combat - declare_attackers
+    new_game.move_to_next_step() #combat - declare_blockers
+    new_game.move_to_next_step() #combat - damage
+    new_game.move_to_next_step() #main - main
+    new_game.move_to_next_step() #main - main (other player)
+
+    new_game.move_to_next_step() #combat - declare_attackers
+    new_game.move_to_next_step() #combat - declare_blockers
+    new_game.move_to_next_step() #combat - damage
+    new_game.move_to_next_step() #main - main
+    new_game.move_to_next_step() #main - main (other player)
+
+    land_to_play = bernardo.position.hand[0]
+    bernardo.play(land_to_play)
+
+    assert len(bernardo.position.hand) == 5
+    assert len(bernardo.position.battlefield) == 2
+    assert bernardo.position.battlefield[1] == land_to_play
+

@@ -78,6 +78,8 @@ class Game(object):
             player.position = position
             player.game = self
             self.positions.append(position)
+            for card in position.library.cards:
+                card.initialize(self, position)
 
         self.game_mode.initialize(self)
         self.turn = 1
@@ -190,6 +192,10 @@ class Card(object):
         ct = Int(messages={'empty':cost_is_required, 'noneType':cost_is_required, 'integer':cost_is_required})
         self.cost = ct.to_python(ne.to_python(cost))
 
+    def initialize(self, game, position):
+        self.game = game
+        self.position = position
+
     def validate_play(self, game, position):
         pass
 
@@ -197,24 +203,30 @@ class Card(object):
         pass
 
 class Land(Card):
+    has_played_land = {}
     def __init__(self, name):
         super(Land, self).__init__(name, 0)
 
+    def initialize(self, game, position):
+        super(Land, self).initialize(game=game, position=position)
+        game.bus.subscribe('step_started', self.handle_upkeep_step)
+
+    def handle_upkeep_step(self, game, phase, step):
+        if step.name != "upkeep": 
+            return
+
+        Land.has_played_land[game.current_position] = False
+
     def validate_play(self, game, position):
-        super(Land, self).on_play(game, position)
+        super(Land, self).validate_play(game, position)
 
-        if not hasattr(position, 'turns_with_land'):
-            return (True, None)
+        has_played = position.index in Land.has_played_land and Land.has_played_land[position.index]
 
-        return (game.turn not in position.turns_with_land, "The player can only play one land per turn.")
+        return (not has_played, "The player can only play one land per turn.")
 
     def on_play(self, game, position):
         super(Land, self).on_play(game, position)
-
-        if not hasattr(position, 'turns_with_land'):
-            position.turns_with_land = []
-
-        position.turns_with_land.append(game.turn)
+        Land.has_played_land[position.index] = True
 
 class GameNotInitializedError(RuntimeError):
     pass
