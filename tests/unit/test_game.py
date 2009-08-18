@@ -544,3 +544,4 @@ def test_passing_to_next_step_enough_times_passes_back_to_first_player_and_updat
     new_game.move_to_next_step() #main - main (other player)
 
     assert new_game.turn == 2
+
