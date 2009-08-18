@@ -24,6 +24,22 @@ from libmagic.game_modes import GameMode, FreeForAll
 from libmagic.phases import *
 from libmagic.bus import *
 
+class GameEventHandler(object):
+    def __init__(self, game):
+        self.game = game
+
+    def perform_game_upkeep(self, game, phase, step):
+        if step.name != 'upkeep':
+            return
+        position = self.game.positions[self.game.current_position]
+        for card in position.battlefield:
+            card.on_upkeep(self.game, position)
+
+    def perform_game_cleanup(self, game, phase, step):
+        if step.name != 'cleanup':
+            return
+        self.game.positions[self.game.current_position].mana = 0
+
 class Game(object):
     class Position(object):
         def __init__(self, index, game, player):
@@ -43,6 +59,7 @@ class Game(object):
             return self.game.game_mode.get_hit_points_for(self.player.name)
 
     def __init__(self, game_mode=None, phases=default_phases):
+        self.event_handler = GameEventHandler(self)
         if not game_mode:
             game_mode = FreeForAll()
 
@@ -82,6 +99,8 @@ class Game(object):
                 card.initialize(self, position)
 
         self.game_mode.initialize(self)
+        self.bus.subscribe('step_started', self.event_handler.perform_game_cleanup)
+        self.bus.subscribe('step_started', self.event_handler.perform_game_upkeep)
         self.turn = 1
 
         self.advance_auto_phases()
@@ -192,6 +211,10 @@ class Card(object):
         ct = Int(messages={'empty':cost_is_required, 'noneType':cost_is_required, 'integer':cost_is_required})
         self.cost = ct.to_python(ne.to_python(cost))
 
+        self.is_tapped = False
+        self.game = None
+        self.position = None
+
     def initialize(self, game, position):
         self.game = game
         self.position = position
@@ -200,6 +223,9 @@ class Card(object):
         pass
 
     def on_play(self, game, position):
+        pass
+
+    def on_upkeep(self, game, position):
         pass
 
 class Land(Card):
@@ -224,9 +250,21 @@ class Land(Card):
 
         return (not has_played, "The player can only play one land per turn.")
 
+    def on_upkeep(self, game, position):
+        super(Land, self).on_play(game, position)
+        self.is_tapped = False
+
     def on_play(self, game, position):
         super(Land, self).on_play(game, position)
         Land.has_played_land[position.index] = True
+
+    def generate_mana(self):
+        if not self.game or not self in self.position.battlefield:
+            raise InvalidOperationError(r"The player can only generate mana for terrains in his battlefield.")
+
+        self.position.mana += 1
+        self.is_tapped = True
+        self.game.bus.publish('mana_generated', self.game, self.position, self)
 
 class GameNotInitializedError(RuntimeError):
     pass
