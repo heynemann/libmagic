@@ -51,8 +51,17 @@ class Game(object):
             self.graveyard = []
             self.hand = self.library.draw(7)
             self.battlefield = []
-            self.mana = 0
-            self.current_position = None
+            self.clear_mana()
+
+        def clear_mana(self):
+            self.mana = {
+                "green":0,
+                "red":0,
+                "black":0,
+                "white":0,
+                "blue":0,
+                "colorless":0,
+            }
 
         @property
         def hit_points(self):
@@ -78,6 +87,7 @@ class Game(object):
 
         self.current_phase = None
         self.current_step = None
+        self.current_position = None
 
     def add_player(self, player, supress_validation=False):
         is_valid, message = self.game_mode.validate_deck(player.deck)
@@ -200,15 +210,42 @@ class Deck(object):
 
         return cards
 
+class Cost(object):
+    def __init__(self, **kw):
+        self.red = "red" in kw and kw["red"] or 0
+        self.black = "black" in kw and kw["black"] or 0
+        self.white = "white" in kw and kw["white"] or 0
+        self.blue = "blue" in kw and kw["blue"] or 0
+        self.green = "green" in kw and kw["green"] or 0
+        self.colorless = "colorless" in kw and kw["colorless"] or 0
+
+    @classmethod
+    def empty(cls):
+        return Cost()
+
+    @property
+    def absolute(self):
+        return self.red + self.black + self.white + self.blue + self.green + self.colorless
+
+#    def satisfied_by(self, **kw):
+#        self.payable_red = "red" in kw and kw["red"] or 0
+#        self.payable_black = "black" in kw and kw["black"] or 0
+#        self.payable_white = "white" in kw and kw["white"] or 0
+#        self.payable_blue = "blue" in kw and kw["blue"] or 0
+#        self.payable_green = "green" in kw and kw["green"] or 0
+#        self.payable_colorless = "colorless" in kw and kw["colorless"] or 0
+
+#        pass
+
 class Card(object):
     def __init__(self, name, cost):
         name_is_required = 'The card name must be a string and is required.'
         ne = NotEmpty(messages={'empty':name_is_required, 'noneType':name_is_required, 'badType':name_is_required})
         self.name = ne.to_python(name)
 
-        cost_is_required = "The card must have an integer cost (even if it's zero)."
+        cost_is_required = "The card must have a cost of type Cost (even if it's zero mana)."
         ne = NotEmpty(messages={'empty':cost_is_required, 'noneType':cost_is_required, 'badType':cost_is_required})
-        ct = Int(messages={'empty':cost_is_required, 'noneType':cost_is_required, 'integer':cost_is_required})
+        ct = ConfirmType(type=(Cost), messages={'empty':cost_is_required, 'noneType':cost_is_required, 'type':cost_is_required})
         self.cost = ct.to_python(ne.to_python(cost))
 
         self.is_tapped = False
@@ -230,8 +267,9 @@ class Card(object):
 
 class Land(Card):
     has_played_land = {}
-    def __init__(self, name):
-        super(Land, self).__init__(name, 0)
+    def __init__(self, name, color):
+        super(Land, self).__init__(name, Cost.empty())
+        self.color = color
 
     def initialize(self, game, position):
         super(Land, self).initialize(game=game, position=position)
@@ -264,7 +302,7 @@ class Land(Card):
         if self.is_tapped:
             raise InvalidOperationError(r"The player can't generate mana out of a tapped land.")
 
-        self.position.mana += 1
+        self.position.mana[self.color] += 1
         self.is_tapped = True
         self.game.bus.publish('mana_generated', self.game, self.position, self)
 

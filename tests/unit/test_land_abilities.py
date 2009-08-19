@@ -15,15 +15,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from libmagic import *
-
-forest = Land(name="Forest", color="green")
-forest_pack = [forest] * 20
-swamp = Land(name="Swamp", color="black")
-swamp_pack = [swamp] * 20
-
-green_deck = Deck(name="Green Deck", cards=forest_pack)
-black_deck = Deck(name="Black Deck", cards=swamp_pack)
-
-green_land_deck = Deck(name="Green Land Deck", cards=forest_pack)
-black_land_deck = Deck(name="Black Land Deck", cards=swamp_pack)
+#def test_generate_mana_ability():
+#    

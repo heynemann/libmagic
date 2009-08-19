@@ -19,7 +19,7 @@ from copy import deepcopy
 
 from formencode.api import Invalid
 
-from libmagic import Game, Player, Deck, Card, Land, FreeForAll, GameMode, InvalidOperationError
+from libmagic import Game, Player, Deck, Card, Land, FreeForAll, GameMode, InvalidOperationError, Cost
 from tests.unit.utils import *
 import tests.unit.data as data
 
@@ -200,15 +200,26 @@ def test_initialize_created_positions_get_zero_mana():
 
     new_game.initialize()
 
-    assert new_game.positions[0].mana == 0
-    assert new_game.positions[1].mana == 0
+    assert new_game.positions[0].mana["green"] == 0
+    assert new_game.positions[0].mana["blue"] == 0
+    assert new_game.positions[0].mana["red"] == 0
+    assert new_game.positions[0].mana["black"] == 0
+    assert new_game.positions[0].mana["white"] == 0
+    assert new_game.positions[0].mana["colorless"] == 0
+
+    assert new_game.positions[1].mana["green"] == 0
+    assert new_game.positions[1].mana["blue"] == 0
+    assert new_game.positions[1].mana["red"] == 0
+    assert new_game.positions[1].mana["black"] == 0
+    assert new_game.positions[1].mana["white"] == 0
+    assert new_game.positions[1].mana["colorless"] == 0
 
 def test_game_decides_player_to_start():
     new_game = Game()
-    cards_a = [Card("Some card", 1)] * 20
+    cards_a = [Card("Some card", Cost(green=1))] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Card("Some card", 4)] * 20
+    cards_b = [Card("Some card", Cost(black=4))] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
 
@@ -225,10 +236,10 @@ def test_game_is_at_turn_zero_before_initialized():
 
 def test_game_is_at_turn_one_after_initialized():
     new_game = Game()
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -240,10 +251,10 @@ def test_game_is_at_turn_one_after_initialized():
 
 def test_game_raises_when_adding_player_with_invalid_deck():
     new_game = Game()
-    cards_a = [Card("Some card", 1)] * 20
+    cards_a = [Card("Some card", cost=Cost(green=1))] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Card("Some card", 4)] * 20
+    cards_b = [Card("Some card", cost=Cost(black=4))] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
 
@@ -279,10 +290,10 @@ def test_initialized_game_passes_through_begginning_phase():
 
     new_game.bus.subscribe('phase_started', on_phase_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -299,10 +310,10 @@ def test_initialized_game_passes_through_begginning_phase_untap_step():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -319,10 +330,10 @@ def test_initialized_game_passes_through_begginning_phase_upkeep_step():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -339,10 +350,10 @@ def test_initialized_game_passes_through_begginning_phase_draw_step():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -359,10 +370,10 @@ def test_initialized_game_passes_through_main_phase():
 
     new_game.bus.subscribe('phase_started', on_phase_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -379,10 +390,10 @@ def test_initialized_game_passes_through_main_phase_main_step():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -399,10 +410,10 @@ def test_initialized_game_stops_at_main_phase():
 
     new_game.bus.subscribe('phase_started', on_phase_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -419,10 +430,10 @@ def test_can_pass_to_next_phase():
 
     new_game.bus.subscribe('phase_started', on_phase_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -441,10 +452,10 @@ def test_passing_to_next_step_passes_automatic_steps():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -462,10 +473,10 @@ def test_passing_to_next_step_enough_times_passes_to_main_of_another_player():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -488,10 +499,10 @@ def test_passing_to_next_step_enough_times_passes_back_to_first_player():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -520,10 +531,10 @@ def test_passing_to_next_step_enough_times_passes_back_to_first_player_and_updat
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)
@@ -552,10 +563,10 @@ def test_passing_through_cleanup_step_clears_mana():
 
     new_game.bus.subscribe('step_started', on_step_started)
 
-    cards_a = [Land("Some card")] * 20
+    cards_a = [Land("Some card", "green")] * 20
     deck_a = Deck("deck a", cards_a)
     bernardo = Player(name="Bernardo", deck=deck_a)
-    cards_b = [Land("Some card")] * 20
+    cards_b = [Land("Some card", "black")] * 20
     deck_b = Deck("deck a", cards_b)
     john = Player(name="John", deck=deck_b)
     new_game.add_player(bernardo)

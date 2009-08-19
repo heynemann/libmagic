@@ -61,7 +61,7 @@ class FreeForAll(GameMode):
         while True:
             greatest_cost_card_player_index = 0
             for player_index, position in enumerate(self.game.positions):
-                if position.library.cards[index].cost > greatest_cost_card_player_index:
+                if position.library.cards[index].cost.absolute > greatest_cost_card_player_index:
                     greatest_cost_card_player_index = player_index
             if greatest_cost_card_player_index > 0:
                 return greatest_cost_card_player_index
