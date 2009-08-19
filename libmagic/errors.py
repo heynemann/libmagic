@@ -15,9 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from libmagic.models import *
-from libmagic.game_modes import *
-from libmagic.phases import *
-from libmagic.bus import *
-from libmagic.errors import *
+class GameNotInitializedError(RuntimeError):
+    pass
 
+class InvalidOperationError(RuntimeError):
+    pass

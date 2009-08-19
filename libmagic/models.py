@@ -23,6 +23,8 @@ from formencode.validators import NotEmpty, ConfirmType, Int, Set
 from libmagic.game_modes import GameMode, FreeForAll
 from libmagic.phases import *
 from libmagic.bus import *
+from libmagic.abilities import *
+from libmagic.errors import *
 
 class GameEventHandler(object):
     def __init__(self, game):
@@ -107,6 +109,8 @@ class Game(object):
             self.positions.append(position)
             for card in position.library.cards:
                 card.initialize(self, position)
+                for ability in card.abilities:
+                    ability.initialize(self, position)
 
         self.game_mode.initialize(self)
         self.bus.subscribe('step_started', self.event_handler.perform_game_cleanup)
@@ -251,10 +255,12 @@ class Card(object):
         self.is_tapped = False
         self.game = None
         self.position = None
+        self.abilities = []
 
     def initialize(self, game, position):
         self.game = game
         self.position = position
+        self.abilities = []
 
     def validate_play(self, game, position):
         pass
@@ -265,6 +271,16 @@ class Card(object):
     def on_upkeep(self, game, position):
         pass
 
+    def __getattr__(self, name):
+        if name.startswith("__") or name == "abilities":
+            return object.__getattribute__(self, name)
+
+        for ability in self.abilities:
+            if ability.__class__.__name__.replace("Ability","") == name:
+                return ability.execute
+
+        raise AttributeError, name
+
 class Land(Card):
     has_played_land = {}
     def __init__(self, name, color):
@@ -274,6 +290,7 @@ class Land(Card):
     def initialize(self, game, position):
         super(Land, self).initialize(game=game, position=position)
         game.bus.subscribe('step_started', self.handle_upkeep_step)
+        self.abilities.append(GenerateManaAndTapAbility(self))
 
     def handle_upkeep_step(self, game, phase, step):
         if step.name != "upkeep": 
@@ -296,18 +313,3 @@ class Land(Card):
         super(Land, self).on_play(game, position)
         Land.has_played_land[position.index] = True
 
-    def generate_mana(self):
-        if not self.game or not self in self.position.battlefield:
-            raise InvalidOperationError(r"The player can only generate mana for terrains in his battlefield.")
-        if self.is_tapped:
-            raise InvalidOperationError(r"The player can't generate mana out of a tapped land.")
-
-        self.position.mana[self.color] += 1
-        self.is_tapped = True
-        self.game.bus.publish('mana_generated', self.game, self.position, self)
-
-class GameNotInitializedError(RuntimeError):
-    pass
-
-class InvalidOperationError(RuntimeError):
-    pass

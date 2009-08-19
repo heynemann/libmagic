@@ -85,7 +85,26 @@ def test_card_validate_play_works():
 def test_tapping_lands_not_in_game_raises():
     bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
     land_to_play = bernardo.deck.cards[0]
-    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can only generate mana for terrains in his battlefield.")
+    try:
+        land_to_play.GenerateManaAndTap()
+    except AttributeError, err:
+        assert str(err) == "GenerateManaAndTap"
+        return
+
+    assert False, "Should not have gone this far"
+
+def test_cards_get_initialized():
+    new_game = Game()
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=data.black_land_deck)
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land_to_play = bernardo.position.hand[0]
+    assert land_to_play.game is new_game
+    assert land_to_play.position is bernardo.position
 
 def test_tapping_lands_from_hand_raises():
     new_game = Game()
@@ -98,7 +117,7 @@ def test_tapping_lands_from_hand_raises():
 
     land_to_play = bernardo.position.hand[0]
 
-    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can only generate mana for terrains in his battlefield.")
+    assert_raises(InvalidOperationError, land_to_play.GenerateManaAndTap, exc_pattern=r"The player can only generate mana for cards in his battlefield.")
 
 def test_player_can_tap_lands_to_get_mana():
     new_game = Game()
@@ -112,7 +131,7 @@ def test_player_can_tap_lands_to_get_mana():
     land_to_play = bernardo.position.hand[0]
     bernardo.play(land_to_play)
 
-    land_to_play.generate_mana() #tap to generate mana
+    land_to_play.GenerateManaAndTap() #tap to generate mana
 
     assert bernardo.position.mana["green"] == 1
     assert bernardo.position.mana["black"] == 0
@@ -135,7 +154,7 @@ def test_generating_mana_out_of_a_tapped_land_raises():
     land_to_play = bernardo.position.hand[0]
     bernardo.play(land_to_play)
 
-    land_to_play.generate_mana() #tap to generate mana
+    land_to_play.GenerateManaAndTap() #tap to generate mana
 
-    assert_raises(InvalidOperationError, land_to_play.generate_mana, exc_pattern=r"The player can't generate mana out of a tapped land.")
+    assert_raises(InvalidOperationError, land_to_play.GenerateManaAndTap, exc_pattern=r"The player can't generate mana out of a tapped card.")
 
