@@ -40,7 +40,7 @@ class GameEventHandler(object):
     def perform_game_cleanup(self, game, phase, step):
         if step.name != 'cleanup':
             return
-        self.game.positions[self.game.current_position].mana = 0
+        self.game.positions[self.game.current_position].clear_mana()
 
 class Game(object):
     class Position(object):
@@ -190,6 +190,9 @@ class Player(object):
         if not is_valid:
             raise InvalidOperationError(message)
 
+        if not card.cost.is_satisfied_by(**self.position.mana):
+            raise InvalidOperationError("The card cost must be satisfied in order to be played.")
+
         self.position.hand.remove(card)
         self.position.battlefield.append(card)
 
@@ -231,15 +234,34 @@ class Cost(object):
     def absolute(self):
         return self.red + self.black + self.white + self.blue + self.green + self.colorless
 
-#    def satisfied_by(self, **kw):
-#        self.payable_red = "red" in kw and kw["red"] or 0
-#        self.payable_black = "black" in kw and kw["black"] or 0
-#        self.payable_white = "white" in kw and kw["white"] or 0
-#        self.payable_blue = "blue" in kw and kw["blue"] or 0
-#        self.payable_green = "green" in kw and kw["green"] or 0
-#        self.payable_colorless = "colorless" in kw and kw["colorless"] or 0
+    def is_satisfied_by(self, **kw):
+        payable_red = "red" in kw and kw["red"] or 0
+        payable_black = "black" in kw and kw["black"] or 0
+        payable_white = "white" in kw and kw["white"] or 0
+        payable_blue = "blue" in kw and kw["blue"] or 0
+        payable_green = "green" in kw and kw["green"] or 0
+        payable_colorless = "colorless" in kw and kw["colorless"] or 0
 
-#        pass
+        if payable_red > self.red:
+            return False
+        if payable_black > self.black:
+            return False
+        if payable_green > self.green:
+            return False
+        if payable_white > self.white:
+            return False
+        if payable_blue > self.blue:
+            return False
+
+        if payable_colorless > (self.red - payable_red +
+                                self.green - payable_green +
+                                self.white - payable_white +
+                                self.black - payable_black +
+                                self.blue - payable_blue +
+                                self.colorless):
+            return False
+
+        return True
 
 class Card(object):
     def __init__(self, name, cost):

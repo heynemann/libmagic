@@ -574,7 +574,12 @@ def test_passing_through_cleanup_step_clears_mana():
 
     new_game.initialize()
 
-    new_game.positions[0].mana = 10
+    new_game.positions[0].mana["green"] = 10
+    new_game.positions[0].mana["blue"] = 10
+    new_game.positions[0].mana["red"] = 10
+    new_game.positions[0].mana["black"] = 10
+    new_game.positions[0].mana["white"] = 10
+    new_game.positions[0].mana["colorless"] = 10
 
     new_game.move_to_next_step() #combat - declare_attackers
     new_game.move_to_next_step() #combat - declare_blockers
@@ -582,5 +587,10 @@ def test_passing_through_cleanup_step_clears_mana():
     new_game.move_to_next_step() #main - main
     new_game.move_to_next_step() #main - main (other player)
 
-    assert new_game.positions[0].mana == 0
+    assert new_game.positions[0].mana["green"] == 0
+    assert new_game.positions[0].mana["blue"] == 0
+    assert new_game.positions[0].mana["red"] == 0
+    assert new_game.positions[0].mana["black"] == 0
+    assert new_game.positions[0].mana["white"] == 0
+    assert new_game.positions[0].mana["colorless"] == 0
 
