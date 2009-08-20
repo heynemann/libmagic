@@ -191,7 +191,7 @@ class Player(object):
             raise InvalidOperationError(message)
 
         if not card.cost.is_satisfied_by(**self.position.mana):
-            raise InvalidOperationError("The card cost must be satisfied in order to be played.")
+            raise InvalidOperationError("The card cost must be satisfied in order for it to be played.")
 
         self.position.hand.remove(card)
         self.position.battlefield.append(card)
@@ -242,22 +242,22 @@ class Cost(object):
         payable_green = "green" in kw and kw["green"] or 0
         payable_colorless = "colorless" in kw and kw["colorless"] or 0
 
-        if payable_red > self.red:
+        if payable_red < self.red:
             return False
-        if payable_black > self.black:
+        if payable_black < self.black:
             return False
-        if payable_green > self.green:
+        if payable_green < self.green:
             return False
-        if payable_white > self.white:
+        if payable_white < self.white:
             return False
-        if payable_blue > self.blue:
+        if payable_blue < self.blue:
             return False
 
-        if payable_colorless > (self.red - payable_red +
-                                self.green - payable_green +
-                                self.white - payable_white +
-                                self.black - payable_black +
-                                self.blue - payable_blue +
+        if payable_colorless < (payable_red - self.red +
+                                payable_green - self.green +
+                                payable_white - self.white +
+                                payable_black - self.black +
+                                payable_blue - self.blue +
                                 self.colorless):
             return False
 
@@ -285,7 +285,7 @@ class Card(object):
         self.abilities = []
 
     def validate_play(self, game, position):
-        pass
+        return (True, None)
 
     def on_play(self, game, position):
         pass

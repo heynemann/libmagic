@@ -21,7 +21,7 @@ from formencode.api import Invalid
 
 from tests.unit.utils import *
 import tests.unit.data as data
-from libmagic import Game, Player, Deck, Card, Land, GameNotInitializedError, InvalidOperationError
+from libmagic import Game, Player, Cost, Deck, Card, Land, GameNotInitializedError, InvalidOperationError
 
 def test_can_create_player():
     new_player = Player(name="Bernardo", deck=deepcopy(data.green_deck))
@@ -175,4 +175,20 @@ def test_player_can_play_two_lands_in_different_turns():
     assert len(bernardo.position.hand) == 5
     assert len(bernardo.position.battlefield) == 2
     assert bernardo.position.battlefield[1] == land_to_play
+
+def test_playing_a_card_without_having_the_cost_raises():
+    new_game = Game()
+    deck_a = Deck("some_deck", [Card("some card %d" % cnt, Cost(green=4)) for cnt in range(20)])
+    deck_b = Deck("some_deck_b", [Card("some card %d " % cnt, Cost(black=3)) for cnt in range(20)])
+
+    bernardo = Player(name="Bernardo", deck=deck_a)
+    john = Player(name="John", deck=deck_b)
+
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    card_to_play = bernardo.position.hand[0]
+    assert_raises(InvalidOperationError, bernardo.play, card=card_to_play, exc_pattern=r"The card cost must be satisfied in order for it to be played.")
 
