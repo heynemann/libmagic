@@ -253,6 +253,7 @@ class Cost(object):
         if payable_blue < self.blue:
             return False
 
+        #Mana Available now is all mana minus the colored ones already spent
         mana_available = payable_red - self.red + \
                          payable_green - self.green + \
                          payable_white - self.white + \
