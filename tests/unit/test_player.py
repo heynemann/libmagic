@@ -192,3 +192,27 @@ def test_playing_a_card_without_having_the_cost_raises():
     card_to_play = bernardo.position.hand[0]
     assert_raises(InvalidOperationError, bernardo.play, card=card_to_play, exc_pattern=r"The card cost must be satisfied in order for it to be played.")
 
+def test_cost_validates_cost_for_red():
+    assert not Cost(red=4).is_satisfied_by(red=2)
+
+def test_cost_validates_cost_for_green():
+    assert not Cost(green=4).is_satisfied_by(green=2)
+
+def test_cost_validates_cost_for_white():
+    assert not Cost(white=4).is_satisfied_by(white=2)
+
+def test_cost_validates_cost_for_black():
+    assert not Cost(black=4).is_satisfied_by(black=2)
+
+def test_cost_validates_cost_for_blue():
+    assert not Cost(blue=4).is_satisfied_by(blue=2)
+
+def test_cost_validates_cost_for_colorless():
+    assert not Cost(colorless=4).is_satisfied_by(colorless=2)
+
+def test_cost_validates_cost_for_colorless_even_when_many_color_manas_available():
+    assert not Cost(colorless=6).is_satisfied_by(red=1, green=1, blue=1, black=1, white=1)
+
+def test_cost_validates_cost_for_colorless_satisfied_by_other_manas():
+    assert Cost(colorless=6).is_satisfied_by(red=3, white=2, colorless=1)
+

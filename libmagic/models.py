@@ -253,12 +253,14 @@ class Cost(object):
         if payable_blue < self.blue:
             return False
 
-        if payable_colorless < (payable_red - self.red +
-                                payable_green - self.green +
-                                payable_white - self.white +
-                                payable_black - self.black +
-                                payable_blue - self.blue +
-                                self.colorless):
+        mana_available = payable_red - self.red + \
+                         payable_green - self.green + \
+                         payable_white - self.white + \
+                         payable_black - self.black + \
+                         payable_blue - self.blue + \
+                         payable_colorless
+
+        if mana_available < self.colorless:
             return False
 
         return True
