@@ -15,5 +15,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#def test_generate_mana_ability():
-#    
+from copy import deepcopy
+
+from libmagic import Game, Player, Deck, Card, Land, FreeForAll, GameMode, InvalidOperationError, Cost
+from libmagic.abilities import *
+from tests.unit.utils import *
+import tests.unit.data as data
+
+def test_generate_mana_and_tap_ability_raises_when_not_initialized():
+    assert_raises(InvalidOperationError, GenerateManaAndTapAbility(None).execute, exc_pattern=r"The player can only generate mana for cards in his battlefield.")
+
+def test_generate_mana_and_tap_ability_raises_when_card_is_not_played():
+    new_game = Game()
+
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=deepcopy(data.black_land_deck))
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    assert_raises(InvalidOperationError, bernardo.position.hand[0].GenerateManaAndTap, exc_pattern=r"The player can only generate mana for cards in his battlefield.")
+
+def test_generate_mana_and_tap_ability_raises_when_card_is_tapped():
+    new_game = Game()
+
+    bernardo = Player(name="Bernardo", deck=deepcopy(data.green_land_deck))
+    john = Player(name="John", deck=deepcopy(data.black_land_deck))
+    new_game.add_player(bernardo)
+    new_game.add_player(john)
+
+    new_game.initialize()
+
+    land = bernardo.position.hand[0]
+    bernardo.play(land)
+
+    land.GenerateManaAndTap()
+
+    assert_raises(InvalidOperationError, land.GenerateManaAndTap, exc_pattern=r"The player can't generate mana out of a tapped card.")
+
